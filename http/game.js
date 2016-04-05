@@ -14,6 +14,11 @@ function loadScript(url, callback) {
 	head.appendChild(script);
 }
 
+String.prototype.replaceAll = function(search, replacement) {
+    var target = this;
+    return target.replace(new RegExp(search, 'g'), replacement);
+};
+
 loadScript('http://code.jquery.com/jquery-2.2.2.min.js', function () {
   loadScript(config.socket_protocol + '://' + config.socket_host + ':' + config.socket_port + '/socket.io/socket.io.js', function () {
     init();
@@ -38,6 +43,9 @@ var init = function () {
   socket.on('map', function (data) {
     $(".container").html(data.data);
   });
+	socket.on('reset', function (data) {
+		$(".status").html('You got eaten by ' + data.player[0] + '. You died with the size of ' + data.player[1]);
+	});
 
   addEventListener("keydown", function (e) {
   	keysDown[e.keyCode] = true;
@@ -63,7 +71,11 @@ var init = function () {
   });
 
 	$("#nickname").on('change', function () {
+		$(this).val($(this).val().replaceAll(' ', ''));
 		socket.emit('new-nickname', {nickname: $(this).val()});
+	});
+	$("#play").click(function () {
+		socket.emit('play');
 	});
 
 };

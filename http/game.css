@@ -17,10 +17,15 @@ body {
 }
 
 .player {
-  width: 20px;
-  height: 20px;
   background: rgb(92, 205, 167);
 
   position: absolute;
   color: white;
+  text-align: center;
+}
+span {
+  float: left;
+  width: 110px;
+  text-align: center;
+  margin-left: -45px;
 }
