@@ -155,7 +155,7 @@ Player.prototype = {
           		&& map[checkPlayer].x <= (player.x + player.size)
           		&& player.y <= (map[checkPlayer].y + map[checkPlayer].size)
           		&& map[checkPlayer].y <= (player.y + player.size)) {
-                  if(player.size < map[checkPlayer].size) {
+            if(player.size < map[checkPlayer].size) {
               socket.emit('reset', {player: [map[checkPlayer].nickname, player.size, map[checkPlayer].size]});
               players[map[checkPlayer].id].size = players[map[checkPlayer].id].size + (player.size / 5);
               player.reset();
