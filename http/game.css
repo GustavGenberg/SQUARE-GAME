@@ -1,0 +1,26 @@
+body {
+  background: aliceblue;
+  margin: 0px;
+  padding: 0px;
+}
+
+.container {
+  width: 800px;
+  height: 500px;
+  position: relative;
+
+
+  background: rgb(49, 61, 210);
+
+  margin-left: calc(50vw - (800px / 2));
+  margin-top: calc(50vh - (500px / 2));
+}
+
+.player {
+  width: 20px;
+  height: 20px;
+  background: rgb(92, 205, 167);
+
+  position: absolute;
+  color: white;
+}
