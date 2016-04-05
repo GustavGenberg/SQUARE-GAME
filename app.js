@@ -34,9 +34,11 @@ app.listen(config.http_port, function () {
   console.log('Express App listening on port ' + config.http_port);
 });
 
-var playerCount = 0;
+var playerCount = 0, foodCount = 0;
 var players = [];
 var map = {};
+var food = {};
+var foodPcs = [];
 
 String.prototype.replaceAll = function(search, replacement) {
     var target = this;
@@ -52,16 +54,16 @@ io.on('connection', function(socket){
 });
 
 
-
 var Player = function (socket) {
 
   this.nickname = 'Unnamed';
   this.id = playerCount;
   this.interval = 0;
-  this.size = Math.floor(Math.random() * 100) + 50;
+  this.size = config.start_size;
   this.x = 0;
   this.y = 0;
   this.socket = socket;
+  this.socket_id = socket.id;
   this.isPlaying = false;
 
   this.log('Connected');
@@ -80,9 +82,9 @@ Player.prototype = {
 
     clearInterval(player.interval);
     setTimeout(function () {
-      delete map[socket.id];
+      delete map[player.socket_id];
 
-      player.size = Math.floor(Math.random() * 100) + 50;
+      player.size = config.start_size;
       player.x = 0;
       player.y = 0;
 
@@ -157,9 +159,34 @@ Player.prototype = {
           		&& map[checkPlayer].y <= (player.y + player.size)) {
             if(player.size < map[checkPlayer].size) {
               socket.emit('reset', {player: [map[checkPlayer].nickname, player.size, map[checkPlayer].size]});
-              players[map[checkPlayer].id].size = players[map[checkPlayer].id].size + (player.size / 5);
+              players[map[checkPlayer].id].size = players[map[checkPlayer].id].size + Math.floor(player.size / 5);
+              players[map[checkPlayer].id].x = players[map[checkPlayer].id].x - Math.floor((player.size / 5) / 2);
+              players[map[checkPlayer].id].y = players[map[checkPlayer].id].y - Math.floor((player.size / 5) / 2);
+
+              players[map[checkPlayer].id].socket.emit('score', {score: players[map[checkPlayer].id].size});
               player.reset();
             }
+          }
+
+        }
+
+        for(pcs in food) {
+          if(player.x <= (food[pcs].x + food[pcs].size)
+          		&& food[pcs].x <= (player.x + player.size)
+          		&& player.y <= (food[pcs].y + food[pcs].size)
+          		&& food[pcs].y <= (player.y + player.size)) {
+
+            if(player.size < config.collect_food_max) {
+
+              player.size = player.size + food[pcs].size;
+              player.x = player.x - Math.floor((food[pcs].size) / 2);
+              player.y = player.y - Math.floor((food[pcs].size) / 2);
+
+              socket.emit('score', {score: player.size});
+
+            }
+
+            delete food[pcs];
           }
 
         }
@@ -172,11 +199,43 @@ Player.prototype = {
   }
 };
 
+var Food = function (size) {
+
+  this.id = foodCount;
+  this.size = size;
+  this.x = Math.floor((Math.random() * (config.map_width - this.size)) + 1);
+  this.y = Math.floor((Math.random() * (config.map_height - this.size)) + 1);
+
+  this.main();
+
+};
+Food.prototype = {
+  log: function (data) {
+    console.log('Food ' + this.id + ': ' + data);
+  },
+
+  main: function () {
+    this.log('Spawning');
+    food[foodCount] = {id: this.id, x: this.x, y: this.y, size: this.size, data: '<div style="width: ' + this.size + 'px; height: ' + this.size + 'px;top: ' + this.y + 'px; left: ' + this.x + 'px" class="food"></div>'};
+    foodCount++;
+  }
+};
+
+setInterval(function () {
+  if(Object.keys(food).length < config.max_food) {
+    foodPcs[foodCount] = new Food (config.food_size);
+  }
+}, 2000);
+
 setInterval(function () {
 
   var data = '';
   for (player in map) {
     data = data + map[player].data;
+  }
+
+  for (pcs in food) {
+    data = data + food[pcs].data;
   }
 
   io.emit('map', {data: data});

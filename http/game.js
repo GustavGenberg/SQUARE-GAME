@@ -46,6 +46,9 @@ var init = function () {
 	socket.on('reset', function (data) {
 		$(".status").html('You got eaten by ' + data.player[0] + '. You died with the size of ' + data.player[1]);
 	});
+	socket.on('score', function (data) {
+		$(".status").html('Score: ' + data.score);
+	})
 
   addEventListener("keydown", function (e) {
   	keysDown[e.keyCode] = true;
