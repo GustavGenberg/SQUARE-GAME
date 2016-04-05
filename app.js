@@ -81,6 +81,8 @@ Player.prototype = {
     var socket = this.socket;
 
     clearInterval(player.interval);
+    clearInterval(player.interval_player);
+    clearInterval(player.interval_food);
     setTimeout(function () {
       delete map[player.socket_id];
 
@@ -147,55 +149,60 @@ Player.prototype = {
         if(player.y >= config.map_height - player.size) { player.y = config.map_height - player.size}
         if(player.y <= 0) { player.y = 0 }
 
-        for(checkPlayer in map) {
-
-          if(checkPlayer == socket.id) {
-            continue;
-          }
-
-          if(player.x <= (map[checkPlayer].x + map[checkPlayer].size)
-          		&& map[checkPlayer].x <= (player.x + player.size)
-          		&& player.y <= (map[checkPlayer].y + map[checkPlayer].size)
-          		&& map[checkPlayer].y <= (player.y + player.size)) {
-            if(player.size < map[checkPlayer].size) {
-              socket.emit('reset', {player: [map[checkPlayer].nickname, player.size, map[checkPlayer].size]});
-              players[map[checkPlayer].id].size = players[map[checkPlayer].id].size + Math.floor(player.size / 5);
-              players[map[checkPlayer].id].x = players[map[checkPlayer].id].x - Math.floor((player.size / 5) / 2);
-              players[map[checkPlayer].id].y = players[map[checkPlayer].id].y - Math.floor((player.size / 5) / 2);
-
-              players[map[checkPlayer].id].socket.emit('score', {score: players[map[checkPlayer].id].size});
-              player.reset();
-            }
-          }
-
-        }
-
-        for(pcs in food) {
-          if(player.x <= (food[pcs].x + food[pcs].size)
-          		&& food[pcs].x <= (player.x + player.size)
-          		&& player.y <= (food[pcs].y + food[pcs].size)
-          		&& food[pcs].y <= (player.y + player.size)) {
-
-            if(player.size < config.collect_food_max) {
-
-              player.size = player.size + food[pcs].size;
-              player.x = player.x - Math.floor((food[pcs].size) / 2);
-              player.y = player.y - Math.floor((food[pcs].size) / 2);
-
-              socket.emit('score', {score: player.size});
-
-            }
-
-            delete food[pcs];
-          }
-
-        }
 
         map[socket.id] = {id: player.id, nickname: player.nickname, size: player.size, x: player.x, y: player.y, data: '<div data-nickname="' + socket.id + '" class="player" style="width: ' + player.size + 'px;height: ' + player.size + 'px;top: ' + player.y + 'px;left: ' + player.x + 'px"><span>' + player.nickname + '</span></div>'};
       });
 
       this.log('Interval set successfully');
     }
+
+    player.interval_player = setInterval(function () {
+      for(checkPlayer in map) {
+
+        if(checkPlayer == socket.id) {
+          continue;
+        }
+
+        if(player.x <= (map[checkPlayer].x + map[checkPlayer].size)
+            && map[checkPlayer].x <= (player.x + player.size)
+            && player.y <= (map[checkPlayer].y + map[checkPlayer].size)
+            && map[checkPlayer].y <= (player.y + player.size)) {
+          if(player.size < map[checkPlayer].size) {
+            socket.emit('reset', {player: [map[checkPlayer].nickname, player.size, map[checkPlayer].size]});
+            players[map[checkPlayer].id].size = players[map[checkPlayer].id].size + Math.floor(player.size / 5);
+            players[map[checkPlayer].id].x = players[map[checkPlayer].id].x - Math.floor((player.size / 5) / 2);
+            players[map[checkPlayer].id].y = players[map[checkPlayer].id].y - Math.floor((player.size / 5) / 2);
+
+            players[map[checkPlayer].id].socket.emit('score', {score: players[map[checkPlayer].id].size});
+            player.reset();
+          }
+        }
+
+      }
+    }, config.collision_interval);
+
+    player.interval_food = setInterval(function () {
+      for(pcs in food) {
+        if(player.x <= (food[pcs].x + food[pcs].size)
+            && food[pcs].x <= (player.x + player.size)
+            && player.y <= (food[pcs].y + food[pcs].size)
+            && food[pcs].y <= (player.y + player.size)) {
+
+          if(player.size < config.collect_food_max) {
+
+            player.size = player.size + food[pcs].size;
+            player.x = player.x - Math.floor((food[pcs].size) / 2);
+            player.y = player.y - Math.floor((food[pcs].size) / 2);
+
+            socket.emit('score', {score: player.size});
+
+          }
+
+          delete food[pcs];
+        }
+
+      }
+    }, config.collision_interval);
   }
 };
 
@@ -239,4 +246,4 @@ setInterval(function () {
   }
 
   io.emit('map', {data: data});
-});
+}, 1000 / config.map_fps);

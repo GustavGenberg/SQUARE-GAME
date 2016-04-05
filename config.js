@@ -6,9 +6,11 @@ module.exports = {
   map_width: 800,
   map_height: 500,
 
-  start_size: 15,
+  start_size: 30,
   food_size: 10,
   collect_food_max: 100,
-  max_food: 5
+  max_food: 5,
+  collision_interval: 300,
+  map_fps: 30
 
 };
