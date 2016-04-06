@@ -1,4 +1,4 @@
 echo off
 cd ./nodejs/
-node-32.exe app.js
+node-32.exe ../app.js
 pause
