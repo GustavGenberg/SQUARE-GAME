@@ -35,5 +35,5 @@ Done.
 1. Download the zip from here: https://github.com/GustavGenberg/SQUARE-GAME/archive/master.zip
 2. Extract the files from the downloaded zip.
 3. Enter the directory.
-4. Run the file callede 'start START-Win-64.bat' or 'start START-Win-32.bat' depending on your system.
+4. Run the file called 'start START-Win-64.bat' or 'start START-Win-32.bat' depending on your system.
 Done.
